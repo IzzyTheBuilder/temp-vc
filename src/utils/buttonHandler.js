@@ -583,8 +583,8 @@ async function handleVoiceRename(interaction) {
   const { guild, member } = interaction;
 
   try {
-    // Acknowledge the interaction immediately to prevent timeout
-    await interaction.deferReply({ ephemeral: true });
+    // IMPORTANT: Never use deferReply before showModal - they are incompatible
+    // The reply has already been sent or deferred error will occur
     
     // Find user's temporary voice channel
     const tempChannel = await TempVoiceChannel.findOne({ 
@@ -593,7 +593,7 @@ async function handleVoiceRename(interaction) {
     });
 
     if (!tempChannel) {
-      return await interaction.editReply({
+      return await interaction.reply({
         embeds: [createErrorEmbed(
           'No Channel Found', 
           'You do not have an active temporary voice channel.'
@@ -606,7 +606,7 @@ async function handleVoiceRename(interaction) {
     const channel = guild.channels.cache.get(tempChannel.channelId);
     if (!channel) {
       await TempVoiceChannel.deleteOne({ channelId: tempChannel.channelId });
-      return await interaction.editReply({
+      return await interaction.reply({
         embeds: [createErrorEmbed(
           'Channel Not Found', 
           'Your temporary voice channel no longer exists.'
@@ -638,25 +638,14 @@ async function handleVoiceRename(interaction) {
   } catch (error) {
     console.error('Error showing rename modal:', error);
     try {
-      if (interaction.deferred) {
-        await interaction.editReply({
-          embeds: [createErrorEmbed(
-            'Rename Failed', 
-            'An error occurred while trying to rename your voice channel. Please try again later.',
-            error.message
-          )],
-          ephemeral: true
-        });
-      } else {
-        await interaction.reply({
-          embeds: [createErrorEmbed(
-            'Rename Failed', 
-            'An error occurred while trying to rename your voice channel. Please try again later.',
-            error.message
-          )],
-          ephemeral: true
-        });
-      }
+      await interaction.reply({
+        embeds: [createErrorEmbed(
+          'Rename Failed', 
+          'An error occurred while trying to rename your voice channel. Please try again later.',
+          error.message
+        )],
+        ephemeral: true
+      });
     } catch (replyError) {
       console.error('Error replying to rename interaction:', replyError);
       // At this point, we can't do anything more with this interaction
@@ -669,8 +658,8 @@ async function handleVoiceLimit(interaction) {
   const { guild, member } = interaction;
 
   try {
-    // Acknowledge the interaction immediately to prevent timeout
-    await interaction.deferReply({ ephemeral: true });
+    // IMPORTANT: Never use deferReply before showModal - they are incompatible
+    // The reply has already been sent or deferred error will occur
     
     // Find user's temporary voice channel
     const tempChannel = await TempVoiceChannel.findOne({ 
@@ -679,7 +668,7 @@ async function handleVoiceLimit(interaction) {
     });
 
     if (!tempChannel) {
-      return await interaction.editReply({
+      return await interaction.reply({
         embeds: [createErrorEmbed(
           'No Channel Found', 
           'You do not have an active temporary voice channel.'
@@ -692,7 +681,7 @@ async function handleVoiceLimit(interaction) {
     const channel = guild.channels.cache.get(tempChannel.channelId);
     if (!channel) {
       await TempVoiceChannel.deleteOne({ channelId: tempChannel.channelId });
-      return await interaction.editReply({
+      return await interaction.reply({
         embeds: [createErrorEmbed(
           'Channel Not Found', 
           'Your temporary voice channel no longer exists.'
@@ -724,25 +713,14 @@ async function handleVoiceLimit(interaction) {
   } catch (error) {
     console.error('Error showing user limit modal:', error);
     try {
-      if (interaction.deferred) {
-        await interaction.editReply({
-          embeds: [createErrorEmbed(
-            'Limit Setting Failed', 
-            'An error occurred while trying to set the user limit. Please try again later.',
-            error.message
-          )],
-          ephemeral: true
-        });
-      } else {
-        await interaction.reply({
-          embeds: [createErrorEmbed(
-            'Limit Setting Failed', 
-            'An error occurred while trying to set the user limit. Please try again later.',
-            error.message
-          )],
-          ephemeral: true
-        });
-      }
+      await interaction.reply({
+        embeds: [createErrorEmbed(
+          'Limit Setting Failed', 
+          'An error occurred while trying to set the user limit. Please try again later.',
+          error.message
+        )],
+        ephemeral: true
+      });
     } catch (replyError) {
       console.error('Error replying to limit interaction:', replyError);
       // At this point, we can't do anything more with this interaction
